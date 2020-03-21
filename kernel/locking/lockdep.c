@@ -3262,6 +3262,27 @@ static int mark_lock(struct task_struct *curr, struct held_lock *this,
 	return ret;
 }
 
+#else /* CONFIG_PROVE_LOCKING */
+
+static inline int
+mark_usage(struct task_struct *curr, struct held_lock *hlock, int check)
+{
+	return 1;
+}
+
+static inline unsigned int task_irq_context(struct task_struct *task)
+{
+	return 0;
+}
+
+static inline int separate_irq_context(struct task_struct *curr,
+		struct held_lock *hlock)
+{
+	return 0;
+}
+
+#endif /* CONFIG_PROVE_LOCKING */
+
 static int
 print_lock_invalid_wait_context(struct task_struct *curr,
 				struct held_lock *hlock)
@@ -3335,7 +3356,7 @@ static int check_wait_context(struct task_struct *curr, struct held_lock *next)
 		/*
 		 * Check if force_irqthreads will run us threaded.
 		 */
-		if (curr->hardirq_threaded || curr->irq_config)
+		if (curr->hardirq_threaded)
 			curr_inner = LD_WAIT_CONFIG;
 		else
 			curr_inner = LD_WAIT_SPIN;
@@ -3368,12 +3389,13 @@ static int check_wait_context(struct task_struct *curr, struct held_lock *next)
 
 	return 0;
 }
+
 /*
  * Initialize a lock instance's lock-class mapping info:
  */
 void lockdep_init_map_waits(struct lockdep_map *lock, const char *name,
-			    struct lock_class_key *key, int subclass,
-			    short inner, short outer)
+			      struct lock_class_key *key, int subclass,
+			      short inner, short outer)
 {
 	int i;
 
@@ -3437,6 +3459,13 @@ void lockdep_init_map_waits(struct lockdep_map *lock, const char *name,
 		raw_local_irq_restore(flags);
 	}
 }
+
+void lockdep_init_map(struct lockdep_map *lock, const char *name,
+		      struct lock_class_key *key, int subclass)
+{
+	__lockdep_init_map(lock, name, key, subclass);
+}
+EXPORT_SYMBOL_GPL(lockdep_init_map);
 EXPORT_SYMBOL_GPL(lockdep_init_map_waits);
 
 struct lock_class_key __lockdep_no_validate__;

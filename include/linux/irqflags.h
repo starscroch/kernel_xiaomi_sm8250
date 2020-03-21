@@ -50,7 +50,12 @@ do {						\
 } while (0)
 # define lockdep_softirq_enter()		\
 do {						\
-	current->softirq_context++;		\
+	if (!current->hardirq_context++)	\
+		current->hardirq_threaded = 0;	\
+} while (0)
+# define trace_hardirq_threaded()		\
+do {						\
+	current->hardirq_threaded = 1;		\
 } while (0)
 # define lockdep_softirq_exit()			\
 do {						\
