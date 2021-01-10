@@ -20,8 +20,15 @@
 #include <linux/sched/task.h>
 #include <uapi/linux/sched/types.h>
 #include <linux/task_work.h>
+#include <linux/cpu.h>
 
 #include "internals.h"
+
+struct irq_desc_list {
+	struct list_head list;
+	struct irq_desc *desc;
+	unsigned int perf_flag;
+};
 
 static LIST_HEAD(perf_crit_irqs);
 static DEFINE_RAW_SPINLOCK(perf_irqs_lock);
@@ -180,7 +187,8 @@ bool irq_can_set_affinity_usr(unsigned int irq)
 	struct irq_desc *desc = irq_to_desc(irq);
 
 	return __irq_can_set_affinity(desc) &&
-		!irqd_affinity_is_managed(&desc->irq_data);
+		!irqd_affinity_is_managed(&desc->irq_data) &&
+		!irqd_has_set(&desc->irq_data, IRQD_PERF_CRITICAL);
 }
 
 /**
@@ -1661,6 +1669,12 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 			irqd_set(&desc->irq_data, IRQD_NO_BALANCING);
 		}
 
+		if (new->flags & (IRQF_PERF_AFFINE | IRQF_PRIME_AFFINE)) {
+			affine_one_perf_thread(new);
+			irqd_set(&desc->irq_data, IRQD_PERF_CRITICAL);
+			*old_ptr = new;
+		}
+
 		if (irq_settings_can_autoenable(desc)) {
 			irq_startup(desc, IRQ_RESEND, IRQ_START_COND);
 		} else {
@@ -1685,7 +1699,8 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 				irq, omsk, nmsk);
 	}
 
-	*old_ptr = new;
+	if (!irqd_has_set(&desc->irq_data, IRQD_PERF_CRITICAL))
+		*old_ptr = new;
 
 	irq_pm_install_action(desc, new);
 
