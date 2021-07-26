@@ -539,6 +539,11 @@ void ion_add_heap(struct ion_device *idev, struct ion_heap *heap)
 
 	plist_node_init(&heap->node, -heap->id);
 	plist_add(&heap->node, &idev->heaps);
+
+	strlcpy(hdata->name, heap->name, sizeof(hdata->name));
+	hdata->type = heap->type;
+	hdata->heap_id = heap->id;
+	idev->heap_count++;
 }
 
 static int ion_walk_heaps(int heap_id, int type, void *data,
@@ -556,6 +561,21 @@ static int ion_walk_heaps(int heap_id, int type, void *data,
 	}
 
 	return ret;
+}
+
+static int ion_query_heaps(struct ion_heap_query *query)
+{
+	struct ion_device *idev = &ion_dev;
+
+	if (!query->cnt)
+		return -EINVAL;
+
+	if (copy_to_user(u64_to_user_ptr(query->heaps), idev->heap_data,
+			 min(query->cnt, idev->heap_count) *
+			 sizeof(*idev->heap_data)))
+		return -EFAULT;
+
+	return 0;
 }
 
 static long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
@@ -580,6 +600,19 @@ static long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 		output = &fd;
 		arg += offsetof(struct ion_allocation_data, fd);
+		break;
+	case ION_IOC_HEAP_QUERY:
+		/* The data used in ion_heap_query ends at `heaps` */
+		if (copy_from_user(&data, (void __user *)arg,
+				   offsetof(struct ion_heap_query, heaps) +
+				   sizeof(data.query.heaps)))
+			return -EFAULT;
+
+		if (data.query.heaps)
+			return ion_query_heaps(&data.query);
+
+		output = &idev->heap_count;
+		/* `arg` already points to the ion_heap_query member we want */
 		break;
 	case ION_IOC_PREFETCH:
 		/* The data used in ion_prefetch_data begins at `regions` */
@@ -617,7 +650,7 @@ static long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	return 0;
 }
 
-struct ion_device *ion_device_create(void)
+struct ion_device *ion_device_create(struct ion_heap_data *heap_data)
 {
 	struct ion_device *idev = &ion_dev;
 	int ret;
@@ -626,5 +659,6 @@ struct ion_device *ion_device_create(void)
 	if (ret)
 		return ERR_PTR(ret);
 
+	idev->heap_data = heap_data;
 	return idev;
 }
