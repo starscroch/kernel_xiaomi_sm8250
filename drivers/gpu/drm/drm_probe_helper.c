@@ -458,14 +458,13 @@ retry:
 		 * locks. Fire up the poll struct instead, it will
 		 * disable itself again.
 		 */
-		dev->mode_config.delayed_event = true;
-		if (dev->mode_config.poll_enabled) {
-			mod_delayed_work(system_wq,
-					 &dev->mode_config.output_poll_work,
-					 0);
-			queue_delayed_work(system_power_efficient_wq,
-					   &dev->mode_config.output_poll_work, 0);
-		}
+	dev->mode_config.delayed_event = true;
+	if (dev->mode_config.poll_enabled) {
+		mod_delayed_work(system_wq,
+				 &dev->mode_config.output_poll_work,
+				 0);
+		queue_delayed_work(system_power_efficient_wq,
+				   &dev->mode_config.output_poll_work, 0);
 	}
 
 	/* Re-enable polling in case the global poll config changed. */
@@ -473,6 +472,7 @@ retry:
 		drm_kms_helper_poll_enable(dev);
 
 	dev->mode_config.poll_running = drm_kms_helper_poll;
+	}
 
 	if (connector->status == connector_status_disconnected) {
 		DRM_DEBUG_KMS("[CONNECTOR:%d:%s] disconnected\n",
