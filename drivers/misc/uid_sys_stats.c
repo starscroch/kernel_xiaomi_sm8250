@@ -248,8 +248,8 @@ static int uid_cputime_open(struct inode *inode, struct file *file)
 static const struct file_operations uid_cputime_fops = {
 	.open		= uid_cputime_open,
 	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
+	.llseek         = seq_lseek,
+	.release        = single_release,
 };
 
 static int uid_remove_open(struct inode *inode, struct file *file)
@@ -302,8 +302,8 @@ static ssize_t uid_remove_write(struct file *file,
 
 static const struct file_operations uid_remove_fops = {
 	.open		= uid_remove_open,
-	.release	= single_release,
-	.write		= uid_remove_write,
+	.release        = single_release,
+	.write          = uid_remove_write,
 };
 
 static void __add_uid_io_stats(struct uid_entry *uid_entry,
@@ -315,7 +315,6 @@ static void __add_uid_io_stats(struct uid_entry *uid_entry,
 	io_slot->write_bytes += compute_write_bytes(ioac);
 	io_slot->rchar += ioac->rchar;
 	io_slot->wchar += ioac->wchar;
-	io_slot->fsync += ioac->syscfs;
 }
 
 static void add_uid_io_stats(struct uid_entry *uid_entry,
@@ -352,7 +351,6 @@ static void update_io_stats_uid(struct uid_entry *uid_entry)
 				io.write_bytes += compute_write_bytes(&t->ioac);
 				io.rchar += t->ioac.rchar;
 				io.wchar += t->ioac.wchar;
-				io.fsync += t->ioac.syscfs;
 			}
 		}
 	}
@@ -402,7 +400,7 @@ static int uid_io_open(struct inode *inode, struct file *file)
 static const struct file_operations uid_io_fops = {
 	.open		= uid_io_open,
 	.read		= seq_read,
-	.llseek		= seq_lseek,
+	.llseek         = seq_lseek,
 	.release	= single_release,
 };
 
@@ -455,8 +453,8 @@ static ssize_t uid_procstat_write(struct file *file,
 
 static const struct file_operations uid_procstat_fops = {
 	.open		= uid_procstat_open,
-	.release	= single_release,
-	.write		= uid_procstat_write,
+	.release        = single_release,
+	.write          = uid_procstat_write,
 };
 
 struct update_stats_work {
