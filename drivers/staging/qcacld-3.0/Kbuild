@@ -2114,6 +2114,7 @@ INCS +=		$(UMAC_SER_INC)
 INCS +=		$(NLINK_INC) \
 		$(PTT_INC) \
 		$(WLAN_LOGGING_INC)
+INCS +=		$(HDD_INC)
 
 INCS +=		$(PLD_INC)
 INCS +=		$(OCB_INC)
