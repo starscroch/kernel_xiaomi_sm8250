@@ -4453,32 +4453,6 @@ int ipa3_cfg_ep(u32 clnt_hdl, const struct ipa_ep_cfg *ipa_ep_cfg)
 	return 0;
 }
 
-static const char *ipa3_get_nat_en_str(enum ipa_nat_en_type nat_en)
-{
-	switch (nat_en) {
-	case (IPA_BYPASS_NAT):
-		return "NAT disabled";
-	case (IPA_SRC_NAT):
-		return "Source NAT";
-	case (IPA_DST_NAT):
-		return "Dst NAT";
-	}
-
-	return "undefined";
-}
-
-static const char *ipa3_get_ipv6ct_en_str(enum ipa_ipv6ct_en_type ipv6ct_en)
-{
-	switch (ipv6ct_en) {
-	case (IPA_BYPASS_IPV6CT):
-		return "ipv6ct disabled";
-	case (IPA_ENABLE_IPV6CT):
-		return "ipv6ct enabled";
-	}
-
-	return "undefined";
-}
-
 /**
  * ipa3_cfg_ep_nat() - IPA end-point NAT configuration
  * @clnt_hdl:	[in] opaque client handle assigned by IPA to client
@@ -4502,11 +4476,6 @@ int ipa3_cfg_ep_nat(u32 clnt_hdl, const struct ipa_ep_cfg_nat *ep_nat)
 		IPAERR("NAT does not apply to IPA out EP %d\n", clnt_hdl);
 		return -EINVAL;
 	}
-
-	IPADBG("pipe=%d, nat_en=%d(%s)\n",
-			clnt_hdl,
-			ep_nat->nat_en,
-			ipa3_get_nat_en_str(ep_nat->nat_en));
 
 	/* copy over EP cfg */
 	ipa3_ctx->ep[clnt_hdl].cfg.nat = *ep_nat;
@@ -4544,11 +4513,6 @@ int ipa3_cfg_ep_conn_track(u32 clnt_hdl,
 		IPAERR("IPv6CT does not apply to IPA out EP %d\n", clnt_hdl);
 		return -EINVAL;
 	}
-
-	IPADBG("pipe=%d, conn_track_en=%d(%s)\n",
-		clnt_hdl,
-		ep_conn_track->conn_track_en,
-		ipa3_get_ipv6ct_en_str(ep_conn_track->conn_track_en));
 
 	/* copy over EP cfg */
 	ipa3_ctx->ep[clnt_hdl].cfg.conn_track = *ep_conn_track;
