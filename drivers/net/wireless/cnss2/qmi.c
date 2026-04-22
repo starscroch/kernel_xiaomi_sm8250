@@ -85,30 +85,6 @@ void cnss_ignore_qmi_failure(bool ignore)
 void cnss_ignore_qmi_failure(bool ignore) { }
 #endif
 
-static char *cnss_qmi_mode_to_str(enum cnss_driver_mode mode)
-{
-	switch (mode) {
-	case CNSS_MISSION:
-		return "MISSION";
-	case CNSS_FTM:
-		return "FTM";
-	case CNSS_EPPING:
-		return "EPPING";
-	case CNSS_WALTEST:
-		return "WALTEST";
-	case CNSS_OFF:
-		return "OFF";
-	case CNSS_CCPM:
-		return "CCPM";
-	case CNSS_QVIT:
-		return "QVIT";
-	case CNSS_CALIBRATION:
-		return "CALIBRATION";
-	default:
-		return "UNKNOWN";
-	}
-};
-
 static int cnss_wlfw_ind_register_send_sync(struct cnss_plat_data *plat_priv)
 {
 	struct wlfw_ind_register_req_msg_v01 *req;
@@ -362,9 +338,6 @@ int cnss_wlfw_respond_mem_send_sync(struct cnss_plat_data *plat_priv)
 	struct qmi_txn txn;
 	struct cnss_fw_mem *fw_mem = plat_priv->fw_mem;
 	int ret = 0, i;
-
-	cnss_pr_dbg("Sending respond memory message, state: 0x%lx\n",
-		    plat_priv->driver_state);
 
 	req = kzalloc(sizeof(*req), GFP_KERNEL);
 	if (!req)
@@ -1111,9 +1084,6 @@ int cnss_wlfw_wlan_mode_send_sync(struct cnss_plat_data *plat_priv,
 	if (mode == CNSS_MISSION && plat_priv->use_nv_mac)
 		cnss_wait_for_wlfw_mac_ready(plat_priv);
 
-	cnss_pr_dbg("Sending mode message, mode: %s(%d), state: 0x%lx\n",
-		    cnss_qmi_mode_to_str(mode), mode, plat_priv->driver_state);
-
 	if (mode == CNSS_OFF &&
 	    test_bit(CNSS_DRIVER_RECOVERY, &plat_priv->driver_state)) {
 		cnss_pr_dbg("Recovery is in progress, ignore mode off request\n");
@@ -1137,8 +1107,6 @@ int cnss_wlfw_wlan_mode_send_sync(struct cnss_plat_data *plat_priv,
 	ret = qmi_txn_init(&plat_priv->qmi_wlfw, &txn,
 			   wlfw_wlan_mode_resp_msg_v01_ei, resp);
 	if (ret < 0) {
-		cnss_pr_err("Failed to initialize txn for mode request, mode: %s(%d), err: %d\n",
-			    cnss_qmi_mode_to_str(mode), mode, ret);
 		goto out;
 	}
 
@@ -1148,22 +1116,15 @@ int cnss_wlfw_wlan_mode_send_sync(struct cnss_plat_data *plat_priv,
 			       wlfw_wlan_mode_req_msg_v01_ei, req);
 	if (ret < 0) {
 		qmi_txn_cancel(&txn);
-		cnss_pr_err("Failed to send mode request, mode: %s(%d), err: %d\n",
-			    cnss_qmi_mode_to_str(mode), mode, ret);
 		goto out;
 	}
 
 	ret = qmi_txn_wait(&txn, QMI_WLFW_TIMEOUT_JF);
 	if (ret < 0) {
-		cnss_pr_err("Failed to wait for response of mode request, mode: %s(%d), err: %d\n",
-			    cnss_qmi_mode_to_str(mode), mode, ret);
 		goto out;
 	}
 
 	if (resp->resp.result != QMI_RESULT_SUCCESS_V01) {
-		cnss_pr_err("Mode request failed, mode: %s(%d), result: %d, err: %d\n",
-			    cnss_qmi_mode_to_str(mode), mode, resp->resp.result,
-			    resp->resp.error);
 		ret = -resp->resp.result;
 		goto out;
 	}
@@ -1196,9 +1157,6 @@ int cnss_wlfw_wlan_cfg_send_sync(struct cnss_plat_data *plat_priv,
 
 	if (!plat_priv)
 		return -ENODEV;
-
-	cnss_pr_dbg("Sending WLAN config message, state: 0x%lx\n",
-		    plat_priv->driver_state);
 
 	req = kzalloc(sizeof(*req), GFP_KERNEL);
 	if (!req)
