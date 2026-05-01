@@ -400,7 +400,7 @@ static int __scm_call2(u32 fn_id, struct scm_desc *desc, bool retry)
 out:
 	trace_scm_call_end(desc);
 	if (ret < 0)
-		pr_err("scm_call failed: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
+		pr_debug("scm_call failed: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
 			x0, ret, desc->ret[0], desc->ret[1], desc->ret[2]);
 
 	if (arglen > N_REGISTER_ARGS)
@@ -485,7 +485,7 @@ int scm_call2_atomic(u32 fn_id, struct scm_desc *desc)
 					  &desc->ret[1], &desc->ret[2]);
 	trace_scm_call_end(desc);
 	if (ret < 0)
-		pr_err("scm_call failed: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
+		pr_debug("scm_call failed: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
 			x0, ret, desc->ret[0],
 			desc->ret[1], desc->ret[2]);
 

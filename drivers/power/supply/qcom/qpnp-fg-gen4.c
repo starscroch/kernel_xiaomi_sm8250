@@ -5397,7 +5397,7 @@ static int fg_psy_get_property(struct power_supply *psy,
 		pval->intval = chip->dt.ffc_ki_coeff_med_hi_chg_thr_ma;
 		break;
 	default:
-		pr_err("unsupported property %d\n", psp);
+		pr_debug("unsupported property %d\n", psp);
 		rc = -EINVAL;
 		break;
 	}
@@ -7043,7 +7043,7 @@ static void fg_battery_soc_smooth_tracking(struct fg_gen4_chip *chip)
 	struct timespec last_change_time = fg->param.last_soc_change_time;
 
 	calculate_delta_time(&last_change_time, &time_since_last_change_sec);
-	pr_info("entry:smooth_batt_soc%d\n", fg->param.smooth_batt_soc);
+	pr_debug("entry:smooth_batt_soc%d\n", fg->param.smooth_batt_soc);
 
 	/* calculate average ibat */
 	calculate_average_current(chip);
@@ -7176,7 +7176,7 @@ static void fg_battery_soc_smooth_tracking(struct fg_gen4_chip *chip)
 			power_supply_changed(fg->batt_psy);
 	}
 
-	pr_info("soc:%d, last_soc:%d, raw_soc:%d, soc_changed:%d, batt_ma:%d, smooth_low_batt_soc:%d, smooth_soc: %d\n",
+	pr_debug("soc:%d, last_soc:%d, raw_soc:%d, soc_changed:%d, batt_ma:%d, smooth_low_batt_soc:%d, smooth_soc: %d\n",
 				fg->param.batt_soc, last_batt_soc,
 				fg->param.batt_raw_soc, soc_changed, fg->param.batt_ma, fg->param.smooth_low_batt_soc, fg->param.smooth_batt_soc);
 }
@@ -7285,7 +7285,7 @@ static void soc_monitor_work(struct work_struct *work)
 	if (fg->soc_reporting_ready)
 		fg_battery_soc_smooth_tracking(chip);
 
-	pr_info("soc:%d, raw_soc:%d, c:%d, s:%d\n",
+	pr_debug("soc:%d, raw_soc:%d, c:%d, s:%d\n",
 			fg->param.batt_soc, fg->param.batt_raw_soc,
 			fg->param.batt_ma, fg->charge_status);
 
