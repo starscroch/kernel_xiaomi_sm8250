@@ -35,8 +35,8 @@
 enum print_reason {
 	PR_INTERRUPT    = BIT(0),
 	PR_REGISTER     = BIT(1),
-	PR_OEM		= BIT(2),
-	PR_DEBUG	= BIT(3),
+	PR_OEM		= BIT(0),
+	PR_DEBUG	= BIT(0),
 };
 
 static int debug_mask = PR_OEM;
