@@ -44,13 +44,13 @@ static inline unsigned long map_util_freq(unsigned long util,
 	 * capacity to avoid over-aggressive top-end frequency boosting.
 	 */
 	delta = cap - util;
-	headroom = (delta * delta) / (cap << 2);
+	headroom = (delta * delta) / (cap << 1);
 
 	/*
 	 * Suppress boosting at very low util to avoid unnecessary frequency
 	 * ramping for tiny background work.
 	 */
-	min_util = cap / 10;
+	min_util = cap / 8;
 	if (min_util && util < min_util)
 		headroom = (headroom * util * util) / (min_util * min_util);
 
