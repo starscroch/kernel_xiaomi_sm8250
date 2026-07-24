@@ -1751,7 +1751,6 @@ static const struct seq_operations vmstat_op = {
 #endif /* CONFIG_PROC_FS */
 
 #ifdef CONFIG_SMP
-static struct workqueue_struct *vmstat_wq;
 static DEFINE_PER_CPU(struct delayed_work, vmstat_work);
 int sysctl_stat_interval __read_mostly = HZ;
 
@@ -1911,7 +1910,7 @@ static void vmstat_shepherd(struct work_struct *w)
 	}
 	put_online_cpus();
 
-	queue_delayed_work(system_power_efficient_wq, &shepherd,
+	schedule_delayed_work(&shepherd,
 		round_jiffies_relative(sysctl_stat_interval));
 }
 
@@ -1923,9 +1922,7 @@ static void __init start_shepherd_timer(void)
 		INIT_DEFERRABLE_WORK(per_cpu_ptr(&vmstat_work, cpu),
 			vmstat_update);
 
-	schedule_delayed_work(&shepherd, 0);
-	vmstat_wq = alloc_workqueue("vmstat", WQ_FREEZABLE|WQ_MEM_RECLAIM, 0);
-	queue_delayed_work(system_power_efficient_wq, &shepherd,
+	schedule_delayed_work(&shepherd,
 		round_jiffies_relative(sysctl_stat_interval));
 }
 
